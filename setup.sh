@@ -308,11 +308,33 @@ log_success "Python 3.14 verified: $PY_VER"
 # Ubuntu may install pip only for its default Python interpreter. Ensure the
 # Python 3.14 interpreter used by the server has its own working pip module.
 if ! python3.14 -m pip --version >/dev/null 2>&1; then
-    log_info "Installing pip for Python 3.14..."
-    python3.14 -m ensurepip --upgrade >/dev/null 2>&1 || {
-        log_error "Unable to install pip for Python 3.14."
-        exit 1
-    }
+    log_info "Installing pip support for Python 3.14..."
+
+    # On Debian/Ubuntu, ensurepip is supplied by the version-specific venv
+    # package and can be missing when Python itself was installed previously.
+    apt-get install -y python3.14-venv || \
+        log_warn "python3.14-venv is unavailable; trying the pip bootstrap installer."
+
+    if ! python3.14 -m ensurepip --upgrade; then
+        log_warn "ensurepip is unavailable; downloading the official pip bootstrap installer..."
+        GET_PIP_FILE=$(mktemp /tmp/get-pip.XXXXXX.py)
+        if ! curl -fsSL https://bootstrap.pypa.io/get-pip.py -o "$GET_PIP_FILE"; then
+            rm -f "$GET_PIP_FILE"
+            log_error "Unable to download the pip bootstrap installer."
+            exit 1
+        fi
+        if ! python3.14 "$GET_PIP_FILE" --break-system-packages; then
+            rm -f "$GET_PIP_FILE"
+            log_error "Unable to install pip for Python 3.14."
+            exit 1
+        fi
+        rm -f "$GET_PIP_FILE"
+    fi
+fi
+
+if ! python3.14 -m pip --version >/dev/null 2>&1; then
+    log_error "pip was installed but cannot be loaded by Python 3.14."
+    exit 1
 fi
 log_success "pip for Python 3.14 is available."
 
