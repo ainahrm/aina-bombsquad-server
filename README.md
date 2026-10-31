@@ -42,6 +42,7 @@ curl -fsSL https://raw.githubusercontent.com/ainahrm/aina-bombsquad-server/main/
 - **Dependency Installation:** Automatically installs Python 3.14, `python3.14-dev`, `python3.14-venv`, `tmux`, `git`, and Python dependencies (`ecdsa`, `flask`, `waitress`, `websockets`). If pip is missing for Python 3.14, the installer tries `ensurepip` and then the official PyPA bootstrap installer.
 - **Repo Cloning:** Clones only the `main` branch with `--depth 1`.
 - **First-run Role Setup:** Creates an empty `playersdata/roles.json` when the untracked player-data file is not present in a fresh clone. Existing role data is never overwritten.
+- **First-run Notification Setup:** Missing notification subscription caches start empty and are created automatically when subscriptions are added.
 - **Permissions:** Sets `chmod 777` on `bombsquad_server` and `dist/bombsquad_headless*` binaries.
 - **Interactive Server Configuration:** Prompts for server name, UDP port, max players, game mode (teams/ffa/coop), owner PB-ID, and Server Manager web password.
 - **Tmux Integration:** Launches the server inside a persistent `tmux` session so it continues running in the background after you disconnect.

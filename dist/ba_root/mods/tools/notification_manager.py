@@ -116,39 +116,46 @@ def player_joined(pb_id):
                     })
 
 
+def _load_json_cache(filename):
+    """Load a notification cache, using its backup or an empty object."""
+    path = os.path.join(PLAYERS_DATA_PATH, filename)
+    for candidate in (path, path + ".backup"):
+        try:
+            with open(candidate, "r", encoding="utf-8") as infile:
+                data = json.load(infile)
+            if isinstance(data, dict):
+                return data
+            print(f"Ignoring invalid notification cache {candidate}: expected an object")
+        except (OSError, json.JSONDecodeError) as exc:
+            if os.path.exists(candidate):
+                print(f"Unable to load notification cache {candidate}: {exc}")
+    return {}
+
+
 def loadCache():
     global subscriptions
     global subscribed_players
-    try:
-        f = open(PLAYERS_DATA_PATH + "subscriptions.json", "r")
-        subscriptions = json.load(f)
-        f.close()
-    except:
-        f = open(PLAYERS_DATA_PATH + "subscriptions.json.backup", "r")
-        subscriptions = json.load(f)
-        f.close()
-    try:
-        f = open(PLAYERS_DATA_PATH + "subscribed_players.json", "r")
-        subscribed_players = json.load(f)
-        f.close()
-    except:
-        f = open(PLAYERS_DATA_PATH + "subscribed_players.json.backup", "r")
-        subscribed_players = json.load(f)
-        f.close()
+    os.makedirs(PLAYERS_DATA_PATH, exist_ok=True)
+    subscriptions = _load_json_cache("subscriptions.json")
+    subscribed_players = _load_json_cache("subscribed_players.json")
 
 
 def dump_cache():
     if subscriptions != {}:
-        shutil.copyfile(PLAYERS_DATA_PATH + "subscriptions.json",
-                        PLAYERS_DATA_PATH + "subscriptions.json.backup")
+        subscriptions_path = PLAYERS_DATA_PATH + "subscriptions.json"
+        if os.path.exists(subscriptions_path):
+            shutil.copyfile(subscriptions_path,
+                            subscriptions_path + ".backup")
 
-        with open(PLAYERS_DATA_PATH + "subscriptions.json", "w") as f:
+        with open(subscriptions_path, "w") as f:
             json.dump(subscriptions, f, indent=4)
     if subscribed_players != {}:
-        shutil.copyfile(PLAYERS_DATA_PATH + "subscribed_players.json",
-                        PLAYERS_DATA_PATH + "subscribed_players.json.backup")
+        subscribed_players_path = PLAYERS_DATA_PATH + "subscribed_players.json"
+        if os.path.exists(subscribed_players_path):
+            shutil.copyfile(subscribed_players_path,
+                            subscribed_players_path + ".backup")
 
-        with open(PLAYERS_DATA_PATH + "subscribed_players.json", "w") as f:
+        with open(subscribed_players_path, "w") as f:
             json.dump(subscribed_players, f, indent=4)
 
     time.sleep(60)
