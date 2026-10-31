@@ -68,6 +68,7 @@ TARGET_DIR="Bombsquad-Ballistica-Modded-Server"
 REPO_BRANCH="main"
 REPO_URL="https://github.com/ainahrm/aina-bombsquad-server.git"
 TMUX_SESSION="bombsquad"
+SYSTEMD_SERVICE="bombsquad-server"
 START_SERVER=true
 SKIP_CLONE=false
 INSTALL_DIR=""
@@ -570,16 +571,16 @@ print_summary() {
     echo -e "${GREEN}${BOLD}       🎉 BombSquad Modded Server Setup Complete! 🎉            ${RESET}"
     echo -e "${GREEN}${BOLD}================================================================${RESET}"
     echo -e " ${BOLD}Installation Directory:${RESET}  $INSTALL_DIR"
-    echo -e " ${BOLD}Tmux Session Name:${RESET}       $TMUX_SESSION"
+    echo -e " ${BOLD}Systemd Service:${RESET}         $SYSTEMD_SERVICE.service"
     echo -e " ${BOLD}Server Config File:${RESET}      $INSTALL_DIR/config.json"
     echo -e " ${BOLD}Roles Configuration:${RESET}     $INSTALL_DIR/dist/ba_root/mods/playersdata/roles.json"
     echo -e " ${BOLD}Extra Mod Settings:${RESET}      $INSTALL_DIR/dist/ba_root/mods/setting.json"
     echo -e "----------------------------------------------------------------"
-    echo -e " ${BOLD}Tmux Management Cheat Sheet:${RESET}"
-    echo -e "   • Attach to console:    ${CYAN}tmux attach -t $TMUX_SESSION${RESET}"
-    echo -e "   • Detach from console:  Press ${YELLOW}Ctrl + B${RESET}, then press ${YELLOW}D${RESET}"
-    echo -e "   • Stop server session:  ${CYAN}tmux kill-session -t $TMUX_SESSION${RESET}"
-    echo -e "   • Stop from inside:     Type ${CYAN}shutdown${RESET} in the server console"
+    echo -e " ${BOLD}Server Management Cheat Sheet:${RESET}"
+    echo -e "   • Live logs:             ${CYAN}sudo journalctl -fu $SYSTEMD_SERVICE${RESET}"
+    echo -e "   • Status:                ${CYAN}sudo systemctl status $SYSTEMD_SERVICE${RESET}"
+    echo -e "   • Restart:               ${CYAN}sudo systemctl restart $SYSTEMD_SERVICE${RESET}"
+    echo -e "   • Stop:                  ${CYAN}sudo systemctl stop $SYSTEMD_SERVICE${RESET}"
     echo -e "----------------------------------------------------------------"
     echo -e " ${BOLD}Firewall Notice:${RESET}"
     echo -e "   Ensure your server's UDP port is open in your cloud/VPS firewall:"
@@ -587,79 +588,60 @@ print_summary() {
     echo -e "${GREEN}${BOLD}================================================================${RESET}\n"
 }
 
-# Step 11: Tmux Session & Server Execution
-log_step "Server Execution & Tmux Setup"
+# Step 11: Persistent systemd service
+log_step "Installing persistent server service"
 
-# If invoked via sudo from a non-root user, run tmux as that user
-if [ -n "${SUDO_USER:-}" ] && [ "$SUDO_USER" != "root" ] && [ "$EUID" -eq 0 ]; then
-    run_user() { sudo -u "$SUDO_USER" "$@"; }
-else
-    run_user() { "$@"; }
+SERVICE_USER="root"
+if [ -n "${SUDO_USER:-}" ] && [ "$SUDO_USER" != "root" ]; then
+    SERVICE_USER="$SUDO_USER"
 fi
+SERVICE_GROUP="$(id -gn "$SERVICE_USER")"
+SERVICE_FILE="/etc/systemd/system/$SYSTEMD_SERVICE.service"
+
+cat > "$SERVICE_FILE" << EOF
+[Unit]
+Description=BombSquad Ballistica Dedicated Server
+After=network-online.target
+Wants=network-online.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+User=$SERVICE_USER
+Group=$SERVICE_GROUP
+WorkingDirectory=$INSTALL_DIR
+ExecStart=$INSTALL_DIR/bombsquad_server --noninteractive
+Restart=always
+RestartSec=5
+TimeoutStopSec=30
+KillSignal=SIGTERM
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+chmod 644 "$SERVICE_FILE"
+systemctl daemon-reload
+systemctl enable "$SYSTEMD_SERVICE.service"
+log_success "Installed and enabled $SYSTEMD_SERVICE.service for automatic restart and boot startup."
 
 if [ "$START_SERVER" = true ]; then
-    if run_user tmux has-session -t "$TMUX_SESSION" 2>/dev/null; then
-        log_warn "A tmux session named '$TMUX_SESSION' is already active."
-        echo -e "Choose an option:"
-        echo -e "  1) Attach to existing tmux session"
-        echo -e "  2) Kill existing session and start fresh"
-        echo -e "  3) Use a different session name"
-        echo -e "  4) Do not start server now"
-        ask_prompt "Enter choice [1/2/3/4, default: 1]:" "1" TMUX_CHOICE
-        case "$TMUX_CHOICE" in
-            1)
-                print_summary
-                if [ -t 0 ]; then
-                    log_info "Attaching to tmux session '$TMUX_SESSION'..."
-                    run_user tmux attach-session -t "$TMUX_SESSION"
-                    exit 0
-                else
-                    echo -e "\n${BOLD}${CYAN}To attach to the running server console, run:${RESET}"
-                    echo -e "  ${BOLD}${GREEN}tmux attach -t $TMUX_SESSION${RESET}\n"
-                    exit 0
-                fi
-                ;;
-            2)
-                log_info "Killing existing tmux session '$TMUX_SESSION'..."
-                run_user tmux kill-session -t "$TMUX_SESSION" 2>/dev/null || true
-                ;;
-            3)
-                ask_prompt "Enter new session name:" "${TMUX_SESSION}_2" TMUX_SESSION
-                ;;
-            *)
-                START_SERVER=false
-                ;;
-        esac
+    # Stop an older installer-created tmux process before systemd takes over
+    # so the two processes cannot compete for the same UDP port.
+    if sudo -u "$SERVICE_USER" tmux has-session -t "$TMUX_SESSION" 2>/dev/null; then
+        log_info "Stopping legacy tmux session '$TMUX_SESSION'..."
+        sudo -u "$SERVICE_USER" tmux kill-session -t "$TMUX_SESSION"
     fi
 
-    if [ "$START_SERVER" = true ]; then
-        if ask_yes_no "Start the BombSquad server now inside tmux session '$TMUX_SESSION'?" "y"; then
-            log_info "Launching server inside tmux session '$TMUX_SESSION'..."
-            run_user tmux new-session -d -s "$TMUX_SESSION" -c "$INSTALL_DIR" "./bombsquad_server"
-            sleep 2
-
-            if run_user tmux has-session -t "$TMUX_SESSION" 2>/dev/null; then
-                log_success "Server successfully started in tmux session '$TMUX_SESSION'!"
-                print_summary
-                if [ -t 0 ]; then
-                    if ask_yes_no "Would you like to attach to the server console right now?" "y"; then
-                        run_user tmux attach-session -t "$TMUX_SESSION"
-                        exit 0
-                    fi
-                else
-                    echo -e "${BOLD}${CYAN}To view the live server console right now, run:${RESET}"
-                    echo -e "  ${BOLD}${GREEN}tmux attach -t $TMUX_SESSION${RESET}\n"
-                fi
-            else
-                log_error "Server process exited prematurely. Run './bombsquad_server' manually to inspect logs."
-                print_summary
-            fi
-        else
-            print_summary
-        fi
+    systemctl restart "$SYSTEMD_SERVICE.service"
+    sleep 3
+    if systemctl is-active --quiet "$SYSTEMD_SERVICE.service"; then
+        log_success "Server is running under systemd supervision."
     else
-        print_summary
+        log_error "Server failed to remain active. Recent service logs follow:"
+        journalctl -u "$SYSTEMD_SERVICE.service" -n 50 --no-pager >&2
+        exit 1
     fi
-else
-    print_summary
 fi
+
+print_summary
