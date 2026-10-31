@@ -42,7 +42,7 @@ curl -fsSL https://raw.githubusercontent.com/ainahrm/aina-bombsquad-server/main/
 - **Dependency Installation:** Automatically installs Python 3.14, `python3.14-dev`, `python3.14-venv`, `tmux`, `git`, and Python dependencies (`ecdsa`, `flask`, `waitress`, `websockets`). If pip is missing for Python 3.14, the installer tries `ensurepip` and then the official PyPA bootstrap installer.
 - **Repo Cloning:** Clones only the `main` branch with `--depth 1`.
 - **Existing Install Updates:** Reused Git checkouts are updated from `origin/main` with a fast-forward-only pull, preserving untracked player data and refusing to overwrite tracked local work.
-- **Owner Role Setup:** Creates `playersdata/roles.json` when missing and adds account IDs listed in `config.json` under `admins` to the owner role. Existing roles and IDs are preserved.
+- **First-run Role Setup:** Creates an empty `playersdata/roles.json` when the untracked player-data file is not present in a fresh clone. Existing role data is never overwritten.
 - **First-run Notification Setup:** Missing notification subscription caches start empty and are created automatically when subscriptions are added.
 - **Permissions:** Sets `chmod 777` on `bombsquad_server` and `dist/bombsquad_headless*` binaries.
 - **Interactive Server Configuration:** Prompts for server name, UDP port, max players, game mode (teams/ffa/coop), owner PB-ID, and Server Manager web password.
@@ -53,9 +53,6 @@ curl -fsSL https://raw.githubusercontent.com/ainahrm/aina-bombsquad-server/main/
 
 ## Manual Installation
 This assumes you are on Ubuntu or an Ubuntu based distribution.
-
-For a containerized VPS deployment with automatic restart and persistent
-server data, see [the Docker deployment guide](docs/DOCKER.md).
 
 Install `software-properties-common`
 ```bash
