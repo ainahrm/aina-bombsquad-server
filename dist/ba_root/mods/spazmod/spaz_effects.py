@@ -127,8 +127,12 @@ class NewPlayerSpaz(PlayerSpaz):
         for effect in self.effects:
             trigger = self._effect_mappings[
                 effect] if effect in self._effect_mappings else lambda: None
-            activity = self._activity()
-            if activity:
+            # Actor._activity was an internal weak-reference used by older
+            # Ballistica versions.  Use the public API so this continues to
+            # work on current versions and safely handles actors whose
+            # activity ended while the async inventory lookup was running.
+            activity = self.getactivity(doraise=False)
+            if activity is not None:
                 with activity.context:
                     trigger()
 

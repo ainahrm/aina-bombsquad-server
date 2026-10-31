@@ -125,11 +125,12 @@
   "max_equipped_effects": 3,
   "rank_effect_duration_days": 3,
   "shop_effect_duration_days": 6,
-  "enablehptag": true,
-  "enablerank": true,
+  "enablehptag": false,
+  "enablerank": false,
+  "enableping": true,
   "enablestats": true,
   "enabletags": true,
-  "firstTimeJoinMsg": "Aoooonaaaaaa",
+  "firstTimeJoinMsg": "Bombeo ary eeee",
   "leaderboard": {
     "barsBehindName": true,
     "enable": true,
@@ -159,7 +160,7 @@
     "soccer": 412160,
     "team": 12345
   },
-  "regularWelcomeMsg": "Tonga ndray enao an!",
+  "regularWelcomeMsg": "Aooonaaaaaaa",
   "sameCharacterForTeam": false,
   "statsResetAfterDays": 31,
   "textonmap": {
@@ -180,7 +181,7 @@
       ],
       "randomColor": true
     },
-    "top watermark": "Welcome to server \nIP @IP PORT @PORT"
+    "top watermark": ""
   },
   "useV2Account": false,
   "warnMsg": "WARNING !!!",

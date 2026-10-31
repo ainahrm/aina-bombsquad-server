@@ -100,13 +100,14 @@ class Tag(object):
                                        'shadow': 1.0,
                                        'flatness': 1.0,
                                        'color': tuple(col),
-                                       'scale': 0.01,
+                                       'scale': 0.0066666667,
                                        'h_align': 'center'
                                    })
         mnode.connectattr('output', self.tag_text, 'position')
 
         import private_hud
-        private_hud.register_node(self.tag_text, 'tag', 'scale', 0.01)
+        private_hud.register_node(
+            self.tag_text, 'tag', 'scale', 0.0066666667)
 
         if sett.get("enableTagAnimation", False):
             bs.animate_array(node=self.tag_text, attr='color', size=3, keys={
@@ -147,13 +148,14 @@ class Rank(object):
                                         'shadow': 1.0,
                                         'flatness': 1.0,
                                         'color': (1, 1, 1),
-                                        'scale': 0.01,
+                                        'scale': 0.0066666667,
                                         'h_align': 'center'
                                     })
         mnode.connectattr('output', self.rank_text, 'position')
 
         import private_hud
-        private_hud.register_node(self.rank_text, 'rank', 'scale', 0.01)
+        private_hud.register_node(
+            self.rank_text, 'rank', 'scale', 0.0066666667)
 
 
 class HitPoint(object):
@@ -171,12 +173,13 @@ class HitPoint(object):
                                     'shadow': shad,
                                     'flatness': 1.0,
                                     'color': (1, 1, 1),
-                                    'scale': 0.01,
+                                    'scale': 0.0066666667,
                                     'h_align': 'center'})
         self.m.connectattr('output', self._Text, 'position')
 
         import private_hud
-        private_hud.register_node(self._Text, 'hptag', 'scale', 0.01)
+        private_hud.register_node(
+            self._Text, 'hptag', 'scale', 0.0066666667)
 
     def update(self, hp):
         if not self._Text or not self._Text.exists():
@@ -207,13 +210,14 @@ class Ping(object):
                                         'shadow': 1.0,
                                         'flatness': 1.0,
                                         'color': (0.2, 1.0, 0.2),
-                                        'scale': 0.01,
+                                        'scale': 0.0066666667,
                                         'h_align': 'center'
                                     })
         self.m.connectattr('output', self.ping_text, 'position')
 
         import private_hud
-        private_hud.register_node(self.ping_text, 'ping', 'scale', 0.01)
+        private_hud.register_node(
+            self.ping_text, 'ping', 'scale', 0.0066666667)
 
         self.update()
         self.timer = bs.Timer(1.5, babase.CallStrict(self.update), repeat=True)

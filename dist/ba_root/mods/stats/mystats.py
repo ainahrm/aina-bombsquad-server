@@ -78,15 +78,14 @@ def dump_stats(s: dict):
     if seasonStartDate is None:
         seasonStartDate = datetime.datetime.now()
     s = {"startDate": seasonStartDate.strftime("%d-%m-%Y"), "stats": s}
+    os.makedirs(base_path, exist_ok=True)
     if os.path.exists(statsfile):
         shutil.copyfile(statsfile, statsfile + ".backup")
-        try:
-            with open(statsfile, 'w', encoding='utf8') as f:
-                f.write(json.dumps(s, indent=4, ensure_ascii=False))
-        except Exception as e:
-            print(f"Error dumping stats: {e}")
-    else:
-        print('Stats file not found!')
+    try:
+        with open(statsfile, 'w', encoding='utf8') as f:
+            f.write(json.dumps(s, indent=4, ensure_ascii=False))
+    except Exception as e:
+        print(f"Error dumping stats: {e}")
 
 
 def get_stats_by_id(account_id: str):
