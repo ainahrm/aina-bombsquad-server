@@ -166,6 +166,22 @@ ask_yes_no() {
     done
 }
 
+# Prompt for a value without echoing it to the terminal. The result is stored
+# in the variable named by the second argument.
+ask_secret() {
+    local prompt_text="$1"
+    local var_name="$2"
+    local secret_val=""
+    echo -ne "${BOLD}${prompt_text}${RESET} "
+    if [ -c /dev/tty ] && [ -r /dev/tty ]; then
+        read -r -s secret_val < /dev/tty
+    else
+        read -r -s secret_val
+    fi
+    echo
+    printf -v "$var_name" '%s' "$secret_val"
+}
+
 # ==============================================================================
 # START OF SCRIPT
 # ==============================================================================
@@ -442,6 +458,67 @@ log_step "Checking existing server configuration..."
 CFG_FILE="$INSTALL_DIR/config.json"
 ROLES_FILE="$INSTALL_DIR/dist/ba_root/mods/playersdata/roles.json"
 SETTING_FILE="$INSTALL_DIR/dist/ba_root/mods/setting.json"
+
+# Configure the gameplay join password once. Existing non-empty passwords are
+# deliberately preserved so rerunning the installer never asks again or
+# overwrites an administrator's choice.
+PASSWORD_IS_SET=$(python3.14 - "$CFG_FILE" << 'PYEOF'
+import json
+import sys
+
+with open(sys.argv[1], "r", encoding="utf-8") as input_file:
+    config = json.load(input_file)
+password = config.get("password")
+print("yes" if isinstance(password, str) and password else "no")
+PYEOF
+) || {
+    log_error "Unable to read the gameplay password from $CFG_FILE"
+    exit 1
+}
+
+if [ "$PASSWORD_IS_SET" = "yes" ]; then
+    log_info "A gameplay join password is already configured; keeping it unchanged."
+else
+    SERVER_PASSWORD="${BOMBSQUAD_SERVER_PASSWORD:-}"
+    if [ "$AUTO_YES" != true ]; then
+        while true; do
+            ask_secret "Set gameplay join password:" SERVER_PASSWORD
+            if [ -z "$SERVER_PASSWORD" ]; then
+                log_warn "The gameplay password cannot be empty."
+                continue
+            fi
+            ask_secret "Confirm gameplay join password:" SERVER_PASSWORD_CONFIRM
+            if [ "$SERVER_PASSWORD" = "$SERVER_PASSWORD_CONFIRM" ]; then
+                break
+            fi
+            log_warn "Passwords do not match; please try again."
+        done
+    elif [ -z "$SERVER_PASSWORD" ]; then
+        log_warn "No gameplay password configured. Set BOMBSQUAD_SERVER_PASSWORD when using --non-interactive."
+    fi
+
+    if [ -n "$SERVER_PASSWORD" ]; then
+        BOMBSQUAD_PASSWORD_VALUE="$SERVER_PASSWORD" \
+            python3.14 - "$CFG_FILE" << 'PYEOF' || {
+import json
+import os
+import sys
+
+config_path = sys.argv[1]
+with open(config_path, "r", encoding="utf-8") as input_file:
+    config = json.load(input_file)
+config["password"] = os.environ["BOMBSQUAD_PASSWORD_VALUE"]
+with open(config_path, "w", encoding="utf-8") as output_file:
+    json.dump(config, output_file, indent=4)
+    output_file.write("\n")
+PYEOF
+            log_error "Unable to save the gameplay password to $CFG_FILE"
+            exit 1
+        }
+        unset SERVER_PASSWORD SERVER_PASSWORD_CONFIRM BOMBSQUAD_PASSWORD_VALUE
+        log_success "Gameplay join password configured."
+    fi
+fi
 
 # Player data files are intentionally not tracked by Git. On a fresh clone,
 # initialize an empty roles object; the server and its management tools can
