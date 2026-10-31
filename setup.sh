@@ -388,6 +388,28 @@ fi
 
 cd "$INSTALL_DIR" || { log_error "Failed to enter directory: $INSTALL_DIR"; exit 1; }
 
+# Reusing an existing clone must not leave old tracked code in place. Update it
+# without overwriting local commits or tracked modifications. Untracked runtime
+# data (including playersdata JSON files) is preserved by a fast-forward pull.
+if [ "$SKIP_CLONE" = true ]; then
+    if [ -d "$INSTALL_DIR/.git" ]; then
+        log_info "Updating existing repository from origin/$REPO_BRANCH..."
+        if [ -n "${SUDO_USER:-}" ] && [ "$SUDO_USER" != "root" ] && [ "$EUID" -eq 0 ]; then
+            UPDATE_CMD=(sudo -H -u "$SUDO_USER" git -C "$INSTALL_DIR")
+        else
+            UPDATE_CMD=(git -C "$INSTALL_DIR")
+        fi
+        if ! "${UPDATE_CMD[@]}" pull --ff-only origin "$REPO_BRANCH"; then
+            log_error "Unable to update the existing repository with a fast-forward pull."
+            log_error "Commit or stash tracked local changes, then run the installer again."
+            exit 1
+        fi
+        log_success "Existing repository updated successfully."
+    else
+        log_warn "Existing installation is not a Git checkout; automatic code updates are unavailable."
+    fi
+fi
+
 # Step 8: Set File Permissions (chmod)
 log_step "Setting file permissions..."
 chmod 777 bombsquad_server 2>/dev/null || chmod +x bombsquad_server

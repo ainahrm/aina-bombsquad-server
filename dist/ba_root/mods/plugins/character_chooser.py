@@ -255,6 +255,13 @@ def handlemessage(self, msg: Any) -> Any:
             return
         if msg.what == 'characterchooser':
             self._click_sound.play()
+            # API 9 cloud profiles carry a composed look which overrides
+            # get_character_name() when the player spawns. Manual selection
+            # switches back to a legacy appearance, so clear that cloud look.
+            self._cloud_spaz_def = None
+            self._cloud_icon = None
+            self._cloud_made_look = None
+            self._cloud_look_name = None
             # update our index in our local list of characters
             self._character_index = ((self._character_index + msg.value) %
                                      len(self._character_names))
@@ -290,6 +297,10 @@ def handlemessage(self, msg: Any) -> Any:
         elif msg.what == 'character':
             self._click_sound.play()
             self.characterchooser = True
+            self._cloud_spaz_def = None
+            self._cloud_icon = None
+            self._cloud_made_look = None
+            self._cloud_look_name = None
             # update our index in our local list of characters
             self._character_index = ((self._character_index + msg.value) %
                                      len(self._character_names))

@@ -41,6 +41,7 @@ curl -fsSL https://raw.githubusercontent.com/ainahrm/aina-bombsquad-server/main/
 - **Memory Check & Swap:** Verifies memory (1.5 GB - 2 GB) and offers to automatically create a 2 GB swap file if memory is low.
 - **Dependency Installation:** Automatically installs Python 3.14, `python3.14-dev`, `python3.14-venv`, `tmux`, `git`, and Python dependencies (`ecdsa`, `flask`, `waitress`, `websockets`). If pip is missing for Python 3.14, the installer tries `ensurepip` and then the official PyPA bootstrap installer.
 - **Repo Cloning:** Clones only the `main` branch with `--depth 1`.
+- **Existing Install Updates:** Reused Git checkouts are updated from `origin/main` with a fast-forward-only pull, preserving untracked player data and refusing to overwrite tracked local work.
 - **First-run Role Setup:** Creates an empty `playersdata/roles.json` when the untracked player-data file is not present in a fresh clone. Existing role data is never overwritten.
 - **First-run Notification Setup:** Missing notification subscription caches start empty and are created automatically when subscriptions are added.
 - **Permissions:** Sets `chmod 777` on `bombsquad_server` and `dist/bombsquad_headless*` binaries.
