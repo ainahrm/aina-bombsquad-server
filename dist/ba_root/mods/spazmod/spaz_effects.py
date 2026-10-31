@@ -1,0 +1,531 @@
+import functools
+import random
+
+import setting
+from playersdata import pdata
+from stats import mystats
+from typing import Sequence
+
+import babase
+import bascenev1 as bs
+import bascenev1lib
+from bascenev1lib.actor.playerspaz import *
+
+_settings = setting.get_settings_data()
+
+from spazmod.effects_inventory import RANK_EFFECT_MAP
+
+
+
+def effect(repeat_interval=0):
+    def _activator(method):
+        @functools.wraps(method)
+        def _inner_activator(self, *args, **kwargs):
+            def _caller():
+                try:
+                    method(self, *args, **kwargs)
+                except:
+                    if self is None or not self.is_alive() or not self.node.exists():
+                        self._activations = []
+                    else:
+                        raise
+
+            effect_activation = bs.Timer(repeat_interval, babase.CallStrict(_caller),
+                                         repeat=repeat_interval > 0)
+            self._activations.append(effect_activation)
+
+        return _inner_activator
+
+    return _activator
+
+
+def node(check_interval=0):
+    def _activator(method):
+        @functools.wraps(method)
+        def _inner_activator(self):
+            node = method(self)
+
+            def _caller():
+                if self is None or not self.is_alive() or not self.node.exists():
+                    node.delete()
+                    self._activations = []
+
+            node_activation = bs.Timer(check_interval, babase.CallStrict(_caller),
+                                       repeat=check_interval > 0)
+            try:
+                self._activations.append(node_activation)
+            except AttributeError:
+                pass
+
+        return _inner_activator
+
+    return _activator
+
+
+class NewPlayerSpaz(PlayerSpaz):
+    def __init__(self,
+                 player: bs.Player,
+                 color: Sequence[float],
+                 highlight: Sequence[float],
+                 character: str,
+                 powerups_expire: bool = True,
+                 *args,
+                 **kwargs):
+
+        super().__init__(player=player,
+                         color=color,
+                         highlight=highlight,
+                         character=character,
+                         powerups_expire=powerups_expire,
+                         *args,
+                         **kwargs)
+        self._activations = []
+        self.effects = []
+
+        babase._asyncio._g_asyncio_event_loop.create_task(self.set_effects())
+
+    async def set_effects(self):
+        try:
+            account_id = self._player._sessionplayer.get_account_id()
+        except:
+            return
+
+        from spazmod.effects_inventory import get_equipped_effects
+        self.effects = get_equipped_effects(account_id)
+
+        if len(self.effects) == 0:
+            return
+
+        self._effect_mappings = {
+            "spark": self._add_spark,
+            "sparkground": self._add_sparkground,
+            "sweat": self._add_sweat,
+            "sweatground": self._add_sweatground,
+            "distortion": self._add_distortion,
+            "glow": self._add_glow,
+            "shine": self._add_shine,
+            "highlightshine": self._add_highlightshine,
+            "scorch": self._add_scorch,
+            "ice": self._add_ice,
+            "iceground": self._add_iceground,
+            "slime": self._add_slime,
+            "metal": self._add_metal,
+            "splinter": self._add_splinter,
+            "rainbow": self._add_rainbow,
+            "fairydust": self._add_fairydust,
+            "firespark": self._add_firespark,
+            "smoketrail": self._add_smoketrail,
+            "frosty": self._add_frosty,
+            "hyper": self._add_hyper,
+            "magical": self._add_magical,
+            "toxic": self._add_toxic,
+            "heavymetal": self._add_heavymetal,
+            "meteor": self._add_meteor,
+            "noeffect": lambda: None,
+        }
+
+        for effect in self.effects:
+            trigger = self._effect_mappings[
+                effect] if effect in self._effect_mappings else lambda: None
+            activity = self._activity()
+            if activity:
+                with activity.context:
+                    trigger()
+
+    @effect(repeat_interval=0.1)
+    def _add_spark(self):
+        bs.emitfx(
+            position=self.node.position,
+            velocity=self.node.velocity,
+            count=random.randint(1, 10),
+            scale=0.5,
+            spread=0.2,
+            chunk_type="spark",
+        )
+
+    @effect(repeat_interval=0.1)
+    def _add_sparkground(self):
+        bs.emitfx(
+            position=self.node.position,
+            velocity=self.node.velocity,
+            count=random.randint(1, 5),
+            scale=0.2,
+            spread=0.1,
+            chunk_type="spark",
+            emit_type="stickers",
+        )
+
+    @effect(repeat_interval=0.04)
+    def _add_sweat(self):
+        velocity = 4.0
+        calculate_position = lambda \
+            torso_position: torso_position - 0.25 + random.uniform(0, 0.5)
+        calculate_velocity = lambda node_velocity, multiplier: random.uniform(
+            -velocity, velocity) + node_velocity * multiplier
+        position = tuple(calculate_position(coordinate)
+                         for coordinate in self.node.torso_position)
+        velocity = (
+            calculate_velocity(self.node.velocity[0], 2),
+            calculate_velocity(self.node.velocity[1], 4),
+            calculate_velocity(self.node.velocity[2], 2),
+        )
+        bs.emitfx(
+            position=position,
+            velocity=velocity,
+            count=10,
+            scale=random.uniform(0.3, 1.4),
+            spread=0.1,
+            chunk_type="sweat",
+        )
+
+    @effect(repeat_interval=0.04)
+    def _add_sweatground(self):
+        velocity = 1.2
+        calculate_position = lambda \
+            torso_position: torso_position - 0.25 + random.uniform(0, 0.5)
+        calculate_velocity = lambda node_velocity, multiplier: random.uniform(
+            -velocity, velocity) + node_velocity * multiplier
+        position = tuple(calculate_position(coordinate)
+                         for coordinate in self.node.torso_position)
+        velocity = (
+            calculate_velocity(self.node.velocity[0], 2),
+            calculate_velocity(self.node.velocity[1], 4),
+            calculate_velocity(self.node.velocity[2], 2),
+        )
+        bs.emitfx(
+            position=position,
+            velocity=velocity,
+            count=10,
+            scale=random.uniform(0.1, 1.2),
+            spread=0.1,
+            chunk_type="sweat",
+            emit_type="stickers",
+        )
+
+    @effect(repeat_interval=1.0)
+    def _add_distortion(self):
+        bs.emitfx(
+            position=self.node.position,
+            spread=1.0,
+            emit_type="distortion"
+        )
+        bs.emitfx(
+            position=self.node.position,
+            velocity=self.node.velocity,
+            count=random.randint(1, 5),
+            emit_type="tendrils",
+            tendril_type="smoke",
+        )
+
+    @effect(repeat_interval=3.0)
+    def _add_shine(self):
+        shine_factor = 1.2
+        dim_factor = 0.90
+
+        default_color = self.node.color
+        shiny_color = tuple(channel * shine_factor for channel in default_color)
+        dimmy_color = tuple(channel * dim_factor for channel in default_color)
+        animation = {
+            0: default_color,
+            1: dimmy_color,
+            2: shiny_color,
+            3: default_color,
+        }
+        bs.animate_array(self.node, "color", 3, animation)
+
+    @effect(repeat_interval=9.0)
+    def _add_highlightshine(self):
+        shine_factor = 1.2
+        dim_factor = 0.90
+
+        default_highlight = self.node.highlight
+        shiny_highlight = tuple(
+            channel * shine_factor for channel in default_highlight)
+        dimmy_highlight = tuple(
+            channel * dim_factor for channel in default_highlight)
+        animation = {
+            0: default_highlight,
+            3: dimmy_highlight,
+            6: shiny_highlight,
+            9: default_highlight,
+        }
+        bs.animate_array(self.node, "highlight", 3, animation)
+
+    @effect(repeat_interval=2.0)
+    def _add_rainbow(self):
+        highlight = tuple(random.random() for _ in range(3))
+        highlight = babase.safecolor(highlight)
+        animation = {
+            0: self.node.highlight,
+            2: highlight,
+        }
+        bs.animate_array(self.node, "highlight", 3, animation)
+
+    @node(check_interval=0.5)
+    def _add_glow(self):
+        glowing_light = bs.newnode(
+            "light",
+            attrs={
+                "color": (1.0, 0.4, 0.5),
+                "height_attenuated": False,
+                "radius": 0.4}
+        )
+        self.node.connectattr("position", glowing_light, "position")
+        bs.animate(
+            glowing_light,
+            "intensity",
+            {0: 0.0, 1: 0.2, 2: 0.0},
+            loop=True)
+        return glowing_light
+
+    @node(check_interval=0.5)
+    def _add_scorch(self):
+        scorcher = bs.newnode(
+            "scorch",
+            attrs={
+                "position": self.node.position,
+                "size": 1.00,
+                "big": True}
+        )
+        self.node.connectattr("position", scorcher, "position")
+        animation = {
+            0: (1, 0, 0),
+            1: (0, 1, 0),
+            2: (1, 0, 1),
+            3: (0, 1, 1),
+            4: (1, 0, 0),
+        }
+        bs.animate_array(scorcher, "color", 3, animation, loop=True)
+        return scorcher
+
+    @effect(repeat_interval=0.5)
+    def _add_ice(self):
+        bs.emitfx(
+            position=self.node.position,
+            velocity=self.node.velocity,
+            count=random.randint(2, 8),
+            scale=0.4,
+            spread=0.2,
+            chunk_type="ice",
+        )
+
+    @effect(repeat_interval=0.05)
+    def _add_iceground(self):
+        bs.emitfx(
+            position=self.node.position,
+            velocity=self.node.velocity,
+            count=random.randint(1, 2),
+            scale=random.uniform(0, 0.5),
+            spread=1.0,
+            chunk_type="ice",
+            emit_type="stickers",
+        )
+
+    @effect(repeat_interval=0.25)
+    def _add_slime(self):
+        bs.emitfx(
+            position=self.node.position,
+            velocity=self.node.velocity,
+            count=random.randint(1, 10),
+            scale=0.4,
+            spread=0.2,
+            chunk_type="slime",
+        )
+
+    @effect(repeat_interval=0.25)
+    def _add_metal(self):
+        bs.emitfx(
+            position=self.node.position,
+            velocity=self.node.velocity,
+            count=random.randint(1, 4),
+            scale=0.4,
+            spread=0.1,
+            chunk_type="metal",
+        )
+
+    @effect(repeat_interval=0.75)
+    def _add_splinter(self):
+        bs.emitfx(
+            position=self.node.position,
+            velocity=self.node.velocity,
+            count=random.randint(1, 5),
+            scale=0.5,
+            spread=0.2,
+            chunk_type="splinter",
+        )
+
+    @effect(repeat_interval=0.25)
+    def _add_fairydust(self):
+        velocity = 2
+        calculate_position = lambda \
+            torso_position: torso_position - 0.25 + random.uniform(0, 0.5)
+        calculate_velocity = lambda node_velocity, multiplier: random.uniform(
+            -velocity, velocity) + node_velocity * multiplier
+        position = tuple(calculate_position(coordinate)
+                         for coordinate in self.node.torso_position)
+        velocity = (
+            calculate_velocity(self.node.velocity[0], 2),
+            calculate_velocity(self.node.velocity[1], 4),
+            calculate_velocity(self.node.velocity[2], 2),
+        )
+        bs.emitfx(
+            position=position,
+            velocity=velocity,
+            count=random.randint(1, 10),
+            spread=0.1,
+            emit_type="fairydust",
+        )
+        
+    @effect(repeat_interval=0.01)
+    def _add_firespark(self):
+        bs.emitfx(
+            position=self.node.position, 
+            velocity=(0, 0, 0), 
+            count=900, spread=0.7, 
+            chunk_type='spark'
+        )
+
+    @effect(repeat_interval=0.15)
+    def _add_smoketrail(self):
+        # A trail of thin smoke puffing out behind the player
+        bs.emitfx(
+            position=self.node.position,
+            velocity=(self.node.velocity[0] * 0.4, 0.5, self.node.velocity[2] * 0.4),
+            count=2,
+            scale=0.8,
+            spread=0.1,
+            emit_type="tendrils",
+            tendril_type="thin_smoke",
+        )
+
+    @effect(repeat_interval=0.2)
+    def _add_frosty(self):
+        # Cool ice trail combining ice chunks and ice tendrils
+        bs.emitfx(
+            position=self.node.position,
+            velocity=self.node.velocity,
+            count=random.randint(1, 3),
+            scale=0.5,
+            spread=0.15,
+            chunk_type="ice",
+        )
+        bs.emitfx(
+            position=self.node.position,
+            velocity=self.node.velocity,
+            count=1,
+            scale=0.6,
+            spread=0.05,
+            emit_type="tendrils",
+            tendril_type="ice",
+        )
+
+    @effect(repeat_interval=0.25)
+    def _add_hyper(self):
+        # High-voltage look using space/light distortion and electrical sparks
+        bs.emitfx(
+            position=self.node.position,
+            scale=0.8,
+            spread=0.3,
+            emit_type="distortion"
+        )
+        bs.emitfx(
+            position=self.node.position,
+            velocity=(self.node.velocity[0] + random.uniform(-1, 1),
+                      self.node.velocity[1] + random.uniform(0.1, 1),
+                      self.node.velocity[2] + random.uniform(-1, 1)),
+            count=random.randint(2, 5),
+            scale=0.3,
+            spread=0.2,
+            chunk_type="spark",
+        )
+
+    @effect(repeat_interval=0.75)
+    def _add_magical(self):
+        # Pure magic: fairy dust trails and a mystical light burst
+        bs.emitfx(
+            position=self.node.position,
+            emit_type="flag_stand",
+        )
+        bs.emitfx(
+            position=self.node.position,
+            velocity=self.node.velocity,
+            count=6,
+            scale=0.6,
+            spread=0.2,
+            emit_type="fairydust",
+        )
+
+    @effect(repeat_interval=0.2)
+    def _add_toxic(self):
+        # Radioactive dripping slime and noxious fumes
+        bs.emitfx(
+            position=self.node.position,
+            velocity=(self.node.velocity[0], -0.8, self.node.velocity[2]),
+            count=random.randint(1, 3),
+            scale=random.uniform(0.3, 0.7),
+            spread=0.1,
+            chunk_type="slime",
+        )
+        bs.emitfx(
+            position=self.node.position,
+            velocity=(0.0, 0.4, 0.0),
+            count=1,
+            scale=0.5,
+            spread=0.1,
+            emit_type="tendrils",
+            tendril_type="smoke",
+        )
+
+    @effect(repeat_interval=0.3)
+    def _add_heavymetal(self):
+        # A clanking cyborg style trail emitting steel chunks and yellow sparks
+        bs.emitfx(
+            position=self.node.position,
+            velocity=self.node.velocity,
+            count=random.randint(1, 2),
+            scale=0.4,
+            spread=0.15,
+            chunk_type="metal",
+        )
+        bs.emitfx(
+            position=self.node.position,
+            velocity=self.node.velocity,
+            count=random.randint(2, 4),
+            scale=0.3,
+            spread=0.1,
+            chunk_type="spark",
+        )
+
+    @effect(repeat_interval=0.15)
+    def _add_meteor(self):
+        # Falling burning meteor trail with rock shards, sparks, and hot smoke
+        bs.emitfx(
+            position=self.node.position,
+            velocity=(self.node.velocity[0] * 0.5,
+                      self.node.velocity[1] - 0.4,
+                      self.node.velocity[2] * 0.5),
+            count=random.randint(1, 2),
+            scale=random.uniform(0.3, 0.6),
+            spread=0.2,
+            chunk_type="rock",
+        )
+        bs.emitfx(
+            position=self.node.position,
+            velocity=self.node.velocity,
+            count=random.randint(3, 7),
+            scale=0.4,
+            spread=0.15,
+            chunk_type="spark",
+        )
+        if random.random() < 0.4:
+            bs.emitfx(
+                position=self.node.position,
+                velocity=(0.0, 0.3, 0.0),
+                count=1,
+                scale=0.6,
+                emit_type="tendrils",
+                tendril_type="smoke",
+            )
+
+def apply() -> None:
+    bascenev1lib.actor.playerspaz.PlayerSpaz = NewPlayerSpaz

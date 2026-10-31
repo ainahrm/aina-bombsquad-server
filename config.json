@@ -1,0 +1,51 @@
+{
+    "admins": [
+        "a-a21442399"
+    ],
+    "allow_punch_grab": false,
+    "authenticate_clients": true,
+    "auto_balance_teams": true,
+    "clean_exit_minutes": 60,
+    "coop_campaign": "Easy",
+    "coop_level": "Onslaught Training",
+    "dont_write_bytecode": false,
+    "enable_default_kick_voting": true,
+    "enable_queue": true,
+    "enable_telnet": false,
+    "ffa_series_length": 24,
+    "idle_exit_minutes": 20,
+    "log_levels": null,
+    "max_party_size": 13,
+    "party_is_public": true,
+    "party_name": "Ndao Ibomba",
+    "password": null,
+    "player_rejoin_cooldown": 10,
+    "playlist_code": null,
+    "playlist_inline": [],
+    "playlist_shuffle": true,
+    "port": 43211,
+    "protocol_version": 38,
+    "session_max_players_override": 16,
+    "session_type": "ffa",
+    "show_tutorial": false,
+    "stats_url": null,
+    "stress_test_players": null,
+    "team_colors": [
+        [
+            0.1,
+            0.25,
+            1
+        ],
+        [
+            1,
+            0.25,
+            0.2
+        ]
+    ],
+    "team_names": [
+        "Red",
+        "Blue"
+    ],
+    "teams_series_length": 7,
+    "unclean_exit_minutes": 90
+}
