@@ -23,6 +23,10 @@ Set up your BombSquad Modded Server with a single command! This automated intera
 curl -fsSL https://raw.githubusercontent.com/ainahrm/aina-bombsquad-server/main/setup.sh | sudo bash
 ```
 
+> **Important:** Use the `main` branch URL shown above. The old URL containing
+> `/public-server/setup.sh` runs an outdated installer and does not include the
+> Python 3.14 pip installation fallback.
+
 > **Alternative command:**
 > ```bash
 > sudo bash -c "$(curl -fsSL https://raw.githubusercontent.com/ainahrm/aina-bombsquad-server/main/setup.sh)"
@@ -35,7 +39,7 @@ curl -fsSL https://raw.githubusercontent.com/ainahrm/aina-bombsquad-server/main/
 
 - **OS & Environment Check:** Verifies Ubuntu 26+ and supported 64-bit architecture (`x86_64` / `aarch64`).
 - **Memory Check & Swap:** Verifies memory (1.5 GB - 2 GB) and offers to automatically create a 2 GB swap file if memory is low.
-- **Dependency Installation:** Automatically installs Python 3.14, `python3.14-dev`, `python3-pip`, `tmux`, `git`, and Python dependencies (`ecdsa`, `flask`, `waitress`, `websockets`).
+- **Dependency Installation:** Automatically installs Python 3.14, `python3.14-dev`, `python3.14-venv`, `tmux`, `git`, and Python dependencies (`ecdsa`, `flask`, `waitress`, `websockets`). If pip is missing for Python 3.14, the installer tries `ensurepip` and then the official PyPA bootstrap installer.
 - **Repo Cloning:** Clones only the `main` branch with `--depth 1`.
 - **Permissions:** Sets `chmod 777` on `bombsquad_server` and `dist/bombsquad_headless*` binaries.
 - **Interactive Server Configuration:** Prompts for server name, UDP port, max players, game mode (teams/ffa/coop), owner PB-ID, and Server Manager web password.
@@ -70,7 +74,7 @@ tmux new -s 43210
 Download server files (`main` branch).
 ```bash
 git clone --depth=1 --branch main https://github.com/ainahrm/aina-bombsquad-server.git
-cd Bombsquad-Ballistica-Modded-Server
+cd aina-bombsquad-server
 ```
 Now edit `config.json` in root dir to change server name, port, admins, playlist, team name etc.
 
@@ -96,13 +100,13 @@ Open `dist/ba_root/mods/setting.json` in your prefered editor and change values 
 
 ___
 ### Adding yourself as owner
-- Open `dist/ba_root/mods/playersData/roles.json` in your prefered editor.
+- Open `dist/ba_root/mods/playersdata/roles.json` in your preferred editor.
 - Add your Pb-id in owner id list.
 - Restart your server
 
 ___
 ### Managing players
-Open `dist/ba_root/mods/playersData/profiles.json` in your prefered editor.
+Open `dist/ba_root/mods/playersdata/profiles.json` in your preferred editor.
 
 Here you can ban players, mute them, or disable their kick votes.
 

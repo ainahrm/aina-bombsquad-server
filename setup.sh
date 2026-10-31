@@ -418,7 +418,7 @@ log_success "Python package dependencies prepared."
 # Step 10: Preserve Repository Configuration
 log_step "Checking existing server configuration..."
 CFG_FILE="$INSTALL_DIR/config.json"
-ROLES_FILE="$INSTALL_DIR/dist/ba_root/mods/playersData/roles.json"
+ROLES_FILE="$INSTALL_DIR/dist/ba_root/mods/playersdata/roles.json"
 SETTING_FILE="$INSTALL_DIR/dist/ba_root/mods/setting.json"
 
 # These files are already configured in the repository. Validate them, but do
@@ -461,7 +461,7 @@ print_summary() {
     echo -e " ${BOLD}Installation Directory:${RESET}  $INSTALL_DIR"
     echo -e " ${BOLD}Tmux Session Name:${RESET}       $TMUX_SESSION"
     echo -e " ${BOLD}Server Config File:${RESET}      $INSTALL_DIR/config.json"
-    echo -e " ${BOLD}Roles Configuration:${RESET}     $INSTALL_DIR/dist/ba_root/mods/playersData/roles.json"
+    echo -e " ${BOLD}Roles Configuration:${RESET}     $INSTALL_DIR/dist/ba_root/mods/playersdata/roles.json"
     echo -e " ${BOLD}Extra Mod Settings:${RESET}      $INSTALL_DIR/dist/ba_root/mods/setting.json"
     echo -e "----------------------------------------------------------------"
     echo -e " ${BOLD}Tmux Management Cheat Sheet:${RESET}"
