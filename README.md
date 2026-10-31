@@ -20,12 +20,12 @@ Migrated from 1.7 to  1.8.0 alpha , this might be unstable and missing some feat
 Set up your BombSquad Modded Server with a single command! This automated interactive script validates system requirements (Ubuntu 26+, 64-bit CPU, RAM), installs Python 3.14 & system packages, clones the `public-server` branch, sets executable permissions, guides you through interactive server configuration, and launches the server inside a background `tmux` session:
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/imayushsaini/Bombsquad-Ballistica-Modded-Server/public-server/setup.sh | sudo bash
+curl -sSL https://raw.githubusercontent.com/ainahrm/aina-bombsquad-server/public-server/setup.sh | sudo bash
 ```
 
 > **Alternative command:**
 > ```bash
-> sudo bash -c "$(curl -fsSL https://raw.githubusercontent.com/imayushsaini/Bombsquad-Ballistica-Modded-Server/public-server/setup.sh)"
+> sudo bash -c "$(curl -fsSL https://raw.githubusercontent.com/ainahrm/aina-bombsquad-server/public-server/setup.sh)"
 > ```
 >
 > *(The script automatically detects your non-root SSH user, preserves file ownership, and runs `tmux` under your user account instead of root).*
@@ -69,7 +69,7 @@ tmux new -s 43210
 ```
 Download server files (`public-server` branch).
 ```bash
-git clone --depth=1 --branch public-server https://github.com/imayushsaini/Bombsquad-Ballistica-Modded-Server.git
+git clone --depth=1 --branch public-server https://github.com/ainahrm/aina-bombsquad-server.git
 cd Bombsquad-Ballistica-Modded-Server
 ```
 Now edit `config.json` in root dir to change server name, port, admins, playlist, team name etc.

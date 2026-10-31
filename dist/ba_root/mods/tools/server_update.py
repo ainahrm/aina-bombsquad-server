@@ -46,7 +46,7 @@ def postRequest(link, data):
 
 
 def fetchChangelogs():
-    url = "https://raw.githubusercontent.com/imayushsaini/Bombsquad-Ballistica-Modded-Server/public-server/dist/ba_root/mods/changelogs.json"
+    url = "https://raw.githubusercontent.com/ainahrm/aina-bombsquad-server/public-server/dist/ba_root/mods/changelogs.json"
     try:
         data = urllib.request.urlopen(url)
         changelog = json.loads(data.read())

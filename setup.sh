@@ -66,7 +66,7 @@ EOF
 # Defaults
 TARGET_DIR="Bombsquad-Ballistica-Modded-Server"
 REPO_BRANCH="public-server"
-REPO_URL="https://github.com/imayushsaini/Bombsquad-Ballistica-Modded-Server.git"
+REPO_URL="https://github.com/ainahrm/aina-bombsquad-server.git"
 TMUX_SESSION="bombsquad"
 START_SERVER=true
 SKIP_CLONE=false
@@ -176,7 +176,7 @@ log_step "Checking user privileges..."
 if [ "$EUID" -ne 0 ]; then
     log_error "Root privileges are required to run this installer."
     echo -e "\n${YELLOW}${BOLD}Please re-run the installation command with sudo:${RESET}"
-    echo -e "  ${CYAN}curl -sSL https://raw.githubusercontent.com/imayushsaini/Bombsquad-Ballistica-Modded-Server/public-server/setup.sh | sudo bash${RESET}"
+    echo -e "  ${CYAN}curl -sSL https://raw.githubusercontent.com/ainahrm/aina-bombsquad-server/public-server/setup.sh | sudo bash${RESET}"
     echo -e "  Or: ${CYAN}sudo bash setup.sh${RESET}\n"
     exit 1
 fi
