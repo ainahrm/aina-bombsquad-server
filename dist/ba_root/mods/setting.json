@@ -191,7 +191,7 @@
     "enforce_for_all_players": false,
     "enforce_for_accounts": [ "HeySmoothy", "test" ]
   },
-  "useSqlite": true,
+  "useSqlite": false,
   "instant_replay": {
     "enable": true,
     "duration": 3,
