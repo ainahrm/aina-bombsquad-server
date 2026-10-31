@@ -3,7 +3,7 @@
   "ChatCommands": {
     "BrodcastCommand": true
   },
-  "HostName": "Unicorn",
+  "HostName": "🦄-unicorn-🦄",
   "KickVoteMsgType": "chat",
   "ScoreScreenAnnouncement": {
     "enable": true,
@@ -164,7 +164,7 @@
   "sameCharacterForTeam": false,
   "statsResetAfterDays": 31,
   "textonmap": {
-    "bottom left watermark": "Unicorn",
+    "bottom left watermark": "🦄-unicorn-🦄",
     "center highlights": {
       "color": [
         1,
@@ -175,7 +175,7 @@
         "type end to start end vote",
         "start msg with prefix .(dot) to send in game popup msg",
         "start msg with prefix ,(comma) to send msg to teammates",
-        "Unicorn",
+        "🦄-unicorn-🦄",
         "Use command /hud to remove unwanted text on map",
         "Use command /shop to buy effects and tags"
       ],
