@@ -17,15 +17,15 @@ Migrated from 1.7 to  1.8.0 alpha , this might be unstable and missing some feat
 
 ## ⚡ Quick Setup (Automated One-Liner)
 
-Set up your BombSquad Modded Server with a single command! This automated interactive script validates system requirements (Ubuntu 26+, 64-bit CPU, RAM), installs Python 3.14 & system packages, clones the `public-server` branch, sets executable permissions, guides you through interactive server configuration, and launches the server inside a background `tmux` session:
+Set up your BombSquad Modded Server with a single command! This automated interactive script validates system requirements (Ubuntu 26+, 64-bit CPU, RAM), installs Python 3.14 & system packages, clones the `main` branch, sets executable permissions, guides you through interactive server configuration, and launches the server inside a background `tmux` session:
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/ainahrm/aina-bombsquad-server/public-server/setup.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/ainahrm/aina-bombsquad-server/main/setup.sh | sudo bash
 ```
 
 > **Alternative command:**
 > ```bash
-> sudo bash -c "$(curl -fsSL https://raw.githubusercontent.com/ainahrm/aina-bombsquad-server/public-server/setup.sh)"
+> sudo bash -c "$(curl -fsSL https://raw.githubusercontent.com/ainahrm/aina-bombsquad-server/main/setup.sh)"
 > ```
 >
 > *(The script automatically detects your non-root SSH user, preserves file ownership, and runs `tmux` under your user account instead of root).*
@@ -36,7 +36,7 @@ curl -sSL https://raw.githubusercontent.com/ainahrm/aina-bombsquad-server/public
 - **OS & Environment Check:** Verifies Ubuntu 26+ and supported 64-bit architecture (`x86_64` / `aarch64`).
 - **Memory Check & Swap:** Verifies memory (1.5 GB - 2 GB) and offers to automatically create a 2 GB swap file if memory is low.
 - **Dependency Installation:** Automatically installs Python 3.14, `python3.14-dev`, `python3-pip`, `tmux`, `git`, and Python dependencies (`ecdsa`, `flask`, `waitress`, `websockets`).
-- **Repo Cloning:** Clones only the `public-server` branch with `--depth 1`.
+- **Repo Cloning:** Clones only the `main` branch with `--depth 1`.
 - **Permissions:** Sets `chmod 777` on `bombsquad_server` and `dist/bombsquad_headless*` binaries.
 - **Interactive Server Configuration:** Prompts for server name, UDP port, max players, game mode (teams/ffa/coop), owner PB-ID, and Server Manager web password.
 - **Tmux Integration:** Launches the server inside a persistent `tmux` session so it continues running in the background after you disconnect.
@@ -67,9 +67,9 @@ Create a tmux session.
 ```bash
 tmux new -s 43210
 ```
-Download server files (`public-server` branch).
+Download server files (`main` branch).
 ```bash
-git clone --depth=1 --branch public-server https://github.com/ainahrm/aina-bombsquad-server.git
+git clone --depth=1 --branch main https://github.com/ainahrm/aina-bombsquad-server.git
 cd Bombsquad-Ballistica-Modded-Server
 ```
 Now edit `config.json` in root dir to change server name, port, admins, playlist, team name etc.

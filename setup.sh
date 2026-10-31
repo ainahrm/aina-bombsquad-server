@@ -3,7 +3,7 @@
 # BombSquad Modded Server - Automated Setup & Installer Script
 # Target OS: Ubuntu 26+ (Linux x86_64 / aarch64)
 # Python: 3.14
-# Branch: public-server
+# Branch: main
 # ==============================================================================
 
 # Interactivity detection
@@ -60,12 +60,12 @@ print_banner() {
                                       |_|                  
 EOF
     echo -e "${RESET}${BOLD} BombSquad Ballistica Modded Server - Automated Setup${RESET}"
-    echo -e "${DIM} Target: Ubuntu 26+ | Python 3.14 | Branch: public-server${RESET}\n"
+    echo -e "${DIM} Target: Ubuntu 26+ | Python 3.14 | Branch: ${REPO_BRANCH}${RESET}\n"
 }
 
 # Defaults
 TARGET_DIR="Bombsquad-Ballistica-Modded-Server"
-REPO_BRANCH="public-server"
+REPO_BRANCH="main"
 REPO_URL="https://github.com/ainahrm/aina-bombsquad-server.git"
 TMUX_SESSION="bombsquad"
 START_SERVER=true
@@ -101,7 +101,7 @@ while [[ $# -gt 0 ]]; do
             echo "Options:"
             echo "  -y, --yes              Non-interactive mode (accept defaults)"
             echo "  -d, --dir <path>       Custom directory to install server"
-            echo "  -b, --branch <name>    Git branch to clone (default: public-server)"
+            echo "  -b, --branch <name>    Git branch to clone (default: main)"
             echo "  -s, --session <name>   Tmux session name (default: bombsquad)"
             echo "  --no-start             Do not start server after installation"
             echo "  -h, --help             Show this help message"
@@ -176,7 +176,7 @@ log_step "Checking user privileges..."
 if [ "$EUID" -ne 0 ]; then
     log_error "Root privileges are required to run this installer."
     echo -e "\n${YELLOW}${BOLD}Please re-run the installation command with sudo:${RESET}"
-    echo -e "  ${CYAN}curl -sSL https://raw.githubusercontent.com/ainahrm/aina-bombsquad-server/public-server/setup.sh | sudo bash${RESET}"
+    echo -e "  ${CYAN}curl -fsSL https://raw.githubusercontent.com/ainahrm/aina-bombsquad-server/main/setup.sh | sudo bash${RESET}"
     echo -e "  Or: ${CYAN}sudo bash setup.sh${RESET}\n"
     exit 1
 fi
@@ -316,7 +316,7 @@ if ! python3.14 -m pip --version >/dev/null 2>&1; then
 fi
 log_success "pip for Python 3.14 is available."
 
-# Step 7: Clone Repository (public-server branch with depth 1)
+# Step 7: Clone Repository (selected branch with depth 1)
 log_step "Setting up server repository..."
 
 # Check if current directory is already the server repository
