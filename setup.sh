@@ -522,16 +522,76 @@ PYEOF
 fi
 
 # Player data files are intentionally not tracked by Git. On a fresh clone,
-# initialize an empty roles object; the server and its management tools can
-# populate it later. Never overwrite an existing roles file.
+# initialize the owner role from config.json's admins list. Never overwrite an
+# existing roles file; server management tools can modify it later.
 if [ ! -f "$ROLES_FILE" ]; then
-    log_warn "roles.json is missing; creating an empty roles configuration."
+    log_warn "roles.json is missing; creating an owner role from configured admins."
     mkdir -p "$(dirname "$ROLES_FILE")"
-    printf '{}\n' > "$ROLES_FILE" || {
+    python3.14 - "$CFG_FILE" "$ROLES_FILE" << 'PYEOF' || {
+import json
+import sys
+
+config_path, roles_path = sys.argv[1:]
+with open(config_path, "r", encoding="utf-8") as input_file:
+    config = json.load(input_file)
+
+admin_ids = config.get("admins", [])
+if not isinstance(admin_ids, list):
+    admin_ids = []
+
+roles = {
+    "owner": {
+        "tag": "owner",
+        "tagcolor": [1, 0.6, 0.4],
+        "commands": ["ALL"],
+        "ids": [account_id for account_id in admin_ids
+                if isinstance(account_id, str) and account_id],
+    }
+}
+with open(roles_path, "w", encoding="utf-8") as output_file:
+    json.dump(roles, output_file, indent=4)
+    output_file.write("\n")
+PYEOF
         log_error "Unable to create $ROLES_FILE"
         exit 1
     }
 fi
+
+# Keep configured server admins authorized for owner-only chat commands even
+# when roles.json already exists (for example, an empty file from an earlier
+# installer run). Preserve every existing role, command, and account ID.
+python3.14 - "$CFG_FILE" "$ROLES_FILE" << 'PYEOF' || {
+import json
+import sys
+
+config_path, roles_path = sys.argv[1:]
+with open(config_path, "r", encoding="utf-8") as input_file:
+    config = json.load(input_file)
+with open(roles_path, "r", encoding="utf-8") as input_file:
+    roles = json.load(input_file)
+
+if not isinstance(roles, dict):
+    raise ValueError("roles.json must contain a JSON object")
+
+owner = roles.setdefault("owner", {})
+owner.setdefault("tag", "owner")
+owner.setdefault("tagcolor", [1, 0.6, 0.4])
+owner.setdefault("commands", ["ALL"])
+owner_ids = owner.setdefault("ids", [])
+if not isinstance(owner_ids, list):
+    raise ValueError("owner.ids must contain a JSON array")
+
+for account_id in config.get("admins", []):
+    if isinstance(account_id, str) and account_id and account_id not in owner_ids:
+        owner_ids.append(account_id)
+
+with open(roles_path, "w", encoding="utf-8") as output_file:
+    json.dump(roles, output_file, indent=4)
+    output_file.write("\n")
+PYEOF
+    log_error "Unable to synchronize configured admins with the owner role."
+    exit 1
+}
 
 # These files are already configured in the repository. Validate them, but do
 # not prompt for or overwrite the party name, port, player limit, game mode,
