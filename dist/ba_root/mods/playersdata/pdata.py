@@ -56,6 +56,8 @@ ROLES_BACKUP_PATH = os.path.join(PLAYERS_DATA_PATH, "roles.json.backup")
 CUSTOM_PATH = os.path.join(PLAYERS_DATA_PATH, "custom.json")
 CUSTOM_BACKUP_PATH = os.path.join(PLAYERS_DATA_PATH, "custom.json.backup")
 WHITELIST_PATH = os.path.join(PLAYERS_DATA_PATH, "whitelist.json")
+SERVER_CONFIG_PATH = os.path.abspath(os.path.join(
+    os.path.dirname(__file__), "..", "..", "..", "..", "config.json"))
 
 
 class CacheData:
@@ -719,6 +721,49 @@ def load_white_list() -> None:
             CacheData.whitelist = list(data.keys())
 
 
+def sync_configured_admins() -> None:
+    """Ensure server admins have the persistent owner role."""
+    try:
+        with open(SERVER_CONFIG_PATH, "r", encoding="utf-8") as config_file:
+            config = json.load(config_file)
+
+        admin_ids = config.get("admins", [])
+        if not isinstance(admin_ids, list):
+            raise ValueError("config.json admins must contain a JSON array")
+
+        roles = get_roles()
+        owner = roles.setdefault("owner", {
+            "tag": "owner",
+            "tagcolor": [1, 0.6, 0.4],
+            "commands": ["ALL"],
+            "ids": [],
+        })
+        owner.setdefault("tag", "owner")
+        owner.setdefault("tagcolor", [1, 0.6, 0.4])
+        owner.setdefault("commands", ["ALL"])
+        owner_ids = owner.setdefault("ids", [])
+        if not isinstance(owner_ids, list):
+            raise ValueError("owner.ids must contain a JSON array")
+
+        changed = False
+        for account_id in admin_ids:
+            if (isinstance(account_id, str) and account_id
+                    and account_id not in owner_ids):
+                owner_ids.append(account_id)
+                changed = True
+
+        CacheData.roles = roles
+        if changed or not owner.get("commands"):
+            owner["commands"] = owner.get("commands") or ["ALL"]
+            if use_sqlite():
+                db_profiles.save_roles(roles)
+            else:
+                _save_json_file(ROLES_PATH, roles, ROLES_BACKUP_PATH)
+            print("Synchronized configured admins with the owner role.")
+    except Exception as exc:
+        print(f"Unable to synchronize configured admins: {exc}")
+
+
 def load_cache():
     """To be called on server boot to load all data into cache."""
     if use_sqlite():
@@ -782,6 +827,7 @@ def load_cache():
 
     get_custom()
     get_roles()
+    sync_configured_admins()
     load_white_list()
     get_blacklist()
 
