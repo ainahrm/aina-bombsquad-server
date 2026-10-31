@@ -421,6 +421,18 @@ CFG_FILE="$INSTALL_DIR/config.json"
 ROLES_FILE="$INSTALL_DIR/dist/ba_root/mods/playersdata/roles.json"
 SETTING_FILE="$INSTALL_DIR/dist/ba_root/mods/setting.json"
 
+# Player data files are intentionally not tracked by Git. On a fresh clone,
+# initialize an empty roles object; the server and its management tools can
+# populate it later. Never overwrite an existing roles file.
+if [ ! -f "$ROLES_FILE" ]; then
+    log_warn "roles.json is missing; creating an empty roles configuration."
+    mkdir -p "$(dirname "$ROLES_FILE")"
+    printf '{}\n' > "$ROLES_FILE" || {
+        log_error "Unable to create $ROLES_FILE"
+        exit 1
+    }
+fi
+
 # These files are already configured in the repository. Validate them, but do
 # not prompt for or overwrite the party name, port, player limit, game mode,
 # admin/owner IDs, roles, host name, or web password.
@@ -450,7 +462,7 @@ PYEOF
     log_error "Existing server configuration validation failed."
     exit 1
 }
-log_success "Existing config.json, roles.json, and setting.json preserved."
+log_success "config.json, roles.json, and setting.json are valid."
 log_info "Using configured UDP port: $CFG_PORT"
 
 # Print installation summary
