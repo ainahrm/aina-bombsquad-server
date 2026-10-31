@@ -3,7 +3,7 @@
   "ChatCommands": {
     "BrodcastCommand": true
   },
-  "HostName": "Ndao Ibomba",
+  "HostName": "Unicorn",
   "KickVoteMsgType": "chat",
   "ScoreScreenAnnouncement": {
     "enable": true,
@@ -38,7 +38,7 @@
   "autoTeamBalance": true,
   "ballistica_web": {
     "enable": true,
-    "server_password": "dametsaph1234",
+    "server_password": "kankana",
     "discord_link": ""
   },
   "character_chooser": {
@@ -164,7 +164,7 @@
   "sameCharacterForTeam": false,
   "statsResetAfterDays": 31,
   "textonmap": {
-    "bottom left watermark": "Ndao Ibomba",
+    "bottom left watermark": "Unicorn",
     "center highlights": {
       "color": [
         1,
@@ -175,7 +175,7 @@
         "type end to start end vote",
         "start msg with prefix .(dot) to send in game popup msg",
         "start msg with prefix ,(comma) to send msg to teammates",
-        "Ndao Ibomba",
+        "Unicorn",
         "Use command /hud to remove unwanted text on map",
         "Use command /shop to buy effects and tags"
       ],
